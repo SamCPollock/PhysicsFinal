@@ -14,6 +14,12 @@ public class CollisionManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+      
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
         cubes = FindObjectsOfType<CubeBehaviour>();
 
         faces = new Vector3[]
@@ -22,11 +28,6 @@ public class CollisionManager : MonoBehaviour
             Vector3.down, Vector3.up,
             Vector3.back , Vector3.forward
         };
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
         spheres = FindObjectsOfType<BulletBehaviour>();
 
         // check each AABB with every other AABB in the scene
@@ -121,10 +122,13 @@ public class CollisionManager : MonoBehaviour
         }
     }
 
-
     public static void CheckAABBs(CubeBehaviour a, CubeBehaviour b)
     {
         Contact contactB = new Contact(b);
+        Contact contactA = new Contact(a);
+
+        RigidBody3D aRb = a.GetComponentInParent(typeof(RigidBody3D)) as RigidBody3D;
+        RigidBody3D bRb = b.GetComponentInParent(typeof(RigidBody3D)) as RigidBody3D;
 
         if ((a.min.x <= b.max.x && a.max.x >= b.min.x) &&
             (a.min.y <= b.max.y && a.max.y >= b.min.y) &&
@@ -140,7 +144,9 @@ public class CollisionManager : MonoBehaviour
                 (a.max.z - b.min.z)
             };
 
-            float penetration = float.MaxValue;
+            
+
+                float penetration = float.MaxValue;
             Vector3 face = Vector3.zero;
 
             // check each face to see if it is the one that connected
@@ -151,6 +157,9 @@ public class CollisionManager : MonoBehaviour
                     // determine the penetration distance
                     penetration = distances[i];
                     face = faces[i];
+
+
+
                 }
             }
             
@@ -171,12 +180,66 @@ public class CollisionManager : MonoBehaviour
                     }
                 }
 
-                if (contactB.face == Vector3.down)
+                if (a.name == "SquareBullet(Clone)")
                 {
-                    a.gameObject.GetComponent<RigidBody3D>().Stop();
-                    a.isGrounded = true;
+                    Debug.Log("SQUAREBULLET HIT");
+                    SquareBulletBehaviour sbBehaviour = a.GetComponentInParent<SquareBulletBehaviour>();
+
+                    if ((contactB.face == Vector3.forward) || (contactB.face == Vector3.back))
+                    {
+                        Debug.Log("BOUNCING BACK");
+                        sbBehaviour.direction = new Vector3(sbBehaviour.direction.x, sbBehaviour.direction.y, -sbBehaviour.direction.z);
+                    }
+                    else if ((contactB.face == Vector3.right) || (contactB.face == Vector3.left))
+                    {
+                        sbBehaviour.direction = new Vector3(-sbBehaviour.direction.x, sbBehaviour.direction.y, sbBehaviour.direction.z);
+                    }
+                    else if ((contactB.face == Vector3.up) || (contactB.face == Vector3.down))
+                    {
+                        sbBehaviour.direction = new Vector3(sbBehaviour.direction.x, -sbBehaviour.direction.y, sbBehaviour.direction.z);
+                    }
+                    return;
                 }
-                
+                else
+                {
+
+                    if (contactB.face == Vector3.down)
+                    {
+                        a.gameObject.GetComponent<RigidBody3D>().Stop();
+                        a.isGrounded = true;
+                    }
+                    else if (contactB.face != Vector3.up)
+                    {
+                        //DIDN'T WORK QUITE RIGHT. HAPPENED EVERY FRAME RESULTING IN EXTRAORDINARY VELOCITY OF IMPULSE
+                        // Relative velocity = Vr
+                        // Collision Normal = n
+                        // Coefficient of Restitution = e
+                        // magnitude of the impulse = j
+                        //Debug.Log("--------NEW COLLISION---------" + a + b);
+                        //Vector3 relativeVelocity = bRb.velocity - aRb.velocity;
+                        //Debug.Log("Relative Velocity: " + relativeVelocity);
+                        //float relativeNormal = Vector3.Dot(relativeVelocity, contactB.face);
+                        //Debug.Log("Relative Normal: " + relativeNormal);
+                        //float coefficientOfRestitution = Mathf.Min(aRb.bounciness, bRb.bounciness);
+                        //Debug.Log("coefficientOfRestitution: " + coefficientOfRestitution);
+                        //float magnitudeOfVelocityAfterCollision = (-coefficientOfRestitution) * relativeNormal;
+                        //Debug.Log("magnitudeOfVelocityAfterCollision: " + magnitudeOfVelocityAfterCollision);
+                        //float magnitudeOfImpulse = (-(1 + coefficientOfRestitution) * (relativeNormal)) / ((1 / aRb.mass) + (1 / bRb.mass));
+                        //Debug.Log("magnitudeOfImpulse: " + magnitudeOfImpulse);
+                        //aRb.velocity = aRb.velocity - ((magnitudeOfImpulse / aRb.mass) * contactA.face);
+                        //Debug.Log("A velocity: " + aRb.velocity);
+                        //bRb.velocity = bRb.velocity - ((magnitudeOfImpulse / bRb.mass) * contactB.face);
+                        //Debug.Log("B Velocity: " + bRb.velocity);
+                        //Debug.Log("--------END OF COLLISION---------");
+
+                        // THIS WORKS
+                        if (b.gameObject.GetComponent<RigidBody3D>().bodyType == BodyType.DYNAMIC)
+                        {
+                            bRb.transform.position += contactB.face * penetration;
+                            return;
+                        }
+                    }
+                }
 
                 // add the new contact
                 a.contacts.Add(contactB);
@@ -184,7 +247,8 @@ public class CollisionManager : MonoBehaviour
                 
             }
         }
-        else
+
+            else
         {
 
             if (a.contacts.Exists(x => x.cube.gameObject.name == b.gameObject.name))
@@ -200,4 +264,6 @@ public class CollisionManager : MonoBehaviour
             }
         }
     }
-}
+    }
+
+

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerBehaviour : MonoBehaviour
 {
@@ -31,6 +32,7 @@ public class PlayerBehaviour : MonoBehaviour
     {
         _Fire();
         _Move();
+        _ReturnToMain();
     }
 
     private void _Move()
@@ -67,7 +69,7 @@ public class PlayerBehaviour : MonoBehaviour
 
             if (Input.GetAxisRaw("Jump") > 0.0f)
             {
-                body.velocity = transform.up * speed * 0.1f * Time.deltaTime;
+                body.velocity += transform.up * speed * 0.03f * Time.deltaTime;
             }
 
             transform.position += body.velocity;
@@ -86,6 +88,17 @@ public class PlayerBehaviour : MonoBehaviour
                 var tempBullet = bulletManager.GetBullet(bulletSpawn.position, bulletSpawn.forward);
                 tempBullet.transform.SetParent(bulletManager.gameObject.transform);
             }
+        }
+    }
+
+    private void _ReturnToMain()
+    {
+        if (Input.GetKeyDown(KeyCode.Backspace))
+        {
+            Debug.Log("RETURNING TO MAIN");
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            SceneManager.LoadScene("StartScene");
         }
     }
 

@@ -18,6 +18,7 @@ public class RigidBody3D : MonoBehaviour
     public BodyType bodyType;
     public float timer;
     public bool isFalling;
+    public float bounciness;
 
     [Header("Attributes")]
     public Vector3 velocity;

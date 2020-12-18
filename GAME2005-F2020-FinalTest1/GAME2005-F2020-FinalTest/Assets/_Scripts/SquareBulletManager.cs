@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BulletManager : MonoBehaviour
+public class SquareBulletManager : MonoBehaviour
 {
     public int MaxBullets;
     public GameObject bullet;
@@ -35,7 +35,7 @@ public class BulletManager : MonoBehaviour
         newBullet = m_playerBulletPool.Dequeue();
         newBullet.SetActive(true);
         newBullet.transform.position = position;
-        newBullet.GetComponent<SquareBulletBehaviour>().direction = direction; // NOTE: Change to BulletBehaviour to use sphere bullets
+        newBullet.GetComponent<BulletBehaviour>().direction = direction;
 
         return newBullet;
     }
@@ -50,5 +50,4 @@ public class BulletManager : MonoBehaviour
         returnedBullet.SetActive(false);
         m_playerBulletPool.Enqueue(returnedBullet);
     }
-    
 }
